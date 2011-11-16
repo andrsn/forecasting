@@ -1,11 +1,20 @@
 \documentclass{article}
 
-\title{How many clicks left? Forecasting the loss of attention on a webpage.}
+\title{How many clicks left? Forecasting attention using dynamic models}
 \author{Sean Anderson and Mike Dewar}
 
 \begin{document}
     
+    \maketitle
+    
     \section{Introduction}
+    
+    Knowing how many clicks a link has yet to see would be valuable in many areas of online publishing. If an audience's attention is likely to wane, it would be better to remedy this before it happens. If your webpage is likely  to be popular for a few more hours yet, it would be a shame to remove it form the limelight prematurely. In this paper we show how to make these kinds of predictions using predictive models commonly used in time series modelling.
+    
+    Modelling traffic volume on individual links faces two basic challenges: predicting the scale of the traffic, i.e. a link's peak click rate, and the shape of the traffic e.g. the time to the peak traffic or the rate of attention decay. While the overall volume is difficult to predict ahead of time, and is massive content-dependent, the shape of the traffic (the `response') is surprisingly consistent. We therefore focus on this second problem and model the link traffic after it has reached its peak.
+    
+    Modelling the response of a system in a predictive fashion comes in two basic flavours: 
+    
     
     \section{Data}
     
