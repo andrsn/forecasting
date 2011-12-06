@@ -1,7 +1,8 @@
 \documentclass{article}
 
-\title{How many clicks left? Forecasting attention using dynamic models}
-\author{Sean Anderson and Mike Dewar}
+\title{Modelling Attention}
+
+\author{Sean Anderson, Tom Stafford and Mike Dewar}
 
 \begin{document}
     
@@ -9,16 +10,28 @@
     
     \section{Introduction}
     
-    Knowing how many clicks a link has yet to see would be valuable in many areas of online publishing. If an audience's attention is likely to wane, it would be better to remedy this before it happens. If your webpage is likely  to be popular for a few more hours yet, it would be a shame to remove it form the limelight prematurely. In this paper we show how to make these kinds of predictions using predictive models commonly used in time series modelling.
+    Clicking on links is the primary method of interaction we have with material on the internet. In aggregate, these clicks represent a huge opportunity for studying human behaviour. Making the link between clicks and human behaviour, though, is not straightforward.
     
-    Modelling traffic volume on individual links faces two basic challenges: predicting the scale of the traffic, i.e. a link's peak click rate, and the shape of the traffic e.g. the time to the peak traffic or the rate of attention decay. While the overall volume is difficult to predict ahead of time, and is massive content-dependent, the shape of the traffic (the `response') is surprisingly consistent. We therefore focus on this second problem and model the link traffic after it has reached its peak.
+    By far and away the most studied aspect of aggregate clicks is the `click through rate': the probability that a user will click on an advert after having seen it \cite{}. Click through rate analysis attempts to infer, and subsequently modify, the behaviour of humans who are clicking on links. This work models behaviour in aggregate across multiple clicks, with the aim of being able to predict an individual's behaviour on a single page.
     
-    Modelling the response of a system in a predictive fashion comes in two basic flavours: 
+% a user's affinity for a product
     
+    While these studies are certainly starting to lead to a deeper understanding of human behaviour when faced with adverts, they generally don't aim to learn more general browsing behaviours. Our focus in this paper is to model attention, and to learn something universal about this slice of human behaviour.
+    
+    Our approach is highly data driven: using clicks captured by the link shortening service bit.ly from across the social web we have created generative, dynamic models that are able to track the click rate on individual links. While these models are useful for prediction, we show in this paper that they are also a `way in' to some fundamental aspects of human behaviour on the internet. 
     
     \section{Data}
     
+    Data is provided by bit.ly, a link shortening service. bit.ly is a popular method for creating shortened versions of long URLs which direct a user's click through an http 301 redirect to the desired page. The typical use case is that user $a$ creates a link to a page they would like to share on the social web\footnote{defined loosely as the ecosystem of websites around twitter.com and facebook.com} and then publishes it on their platform of choice. User $b$ then sees that published link and clicks on it, and it is this click that is captured by bit.ly. Here we are interested in the time of each click, broken down by referring domain and target URL. 
+    
     \subsection{Clicks}
+    
+    We define a click as an http 301 redirect event from either facebook.com or twitter.com to a target domain. From bit.ly's data set we store the time of a click, denoted $t$, which has a resolution of seconds, we store the referring domain, denoted $i \in \{\textrm{facebook.com}, \textrm{twitter.com} \}$, and the target domain, denoted $j$. We group this data into clicks from a specific domain to a specific URL: 
+    \begin{equation}
+        c_{ij} = \{t_1, t_2, \ldots, t_{N_{ij}}\}
+    \end{equation}
+    where $N_{ij}$ is the total number of clicks from referrer $i$ to URL $j$. 
+    
     
     \subsection{Click Rates}
     
@@ -30,8 +43,6 @@
     
     \section{Results}
     
-    \subsection{Time left }
-    
-    \section{}
+    \subsection{Time Constants}
     
 \end{document}
