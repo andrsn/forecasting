@@ -12,7 +12,7 @@
     
     Clicking on links is the primary method of interaction we have with material on the internet. In aggregate, these clicks represent a huge opportunity for studying human behaviour. Making the link between clicks and human behaviour, though, is not straightforward.
     
-    By far and away the most studied aspect of aggregate clicks is the `click through rate': the probability that a user will click on an advert after having seen it \cite{}. Click through rate analysis attempts to infer, and subsequently modify, the behaviour of humans who are clicking on links. This work models behaviour in aggregate across multiple clicks, with the aim of being able to predict an individual's behaviour on a single page.
+    The most studied aspect of aggregate clicks is the `click through rate': the probability that a user will click on an advert after having seen it \cite{}. Click through rate analysis attempts to infer, and subsequently modify, the behaviour of humans who are clicking on links. This work models behaviour in aggregate across multiple clicks, with the aim of being able to predict an individual's behaviour on a single page.
     
 % a user's affinity for a product
     
@@ -22,7 +22,7 @@
     
     \section{Data}
     
-    Data is provided by bit.ly, a link shortening service. bit.ly is a popular method for creating shortened versions of long URLs which direct a user's click through an http 301 redirect to the desired page. The typical use case is that user $a$ creates a link to a page they would like to share on the social web\footnote{defined loosely as the ecosystem of websites around twitter.com and facebook.com} and then publishes it on their platform of choice. User $b$ then sees that published link and clicks on it, and it is this click that is captured by bit.ly. Here we are interested in the time of each click, broken down by referring domain and target URL. 
+    Data is provided by bit.ly, a link shortening service. bit.ly is a popular method for creating shortened versions of long URLs which direct a user's click through an http 301 redirect to the desired page. The typical use case is that user $a$ creates a link to a page they would like to share on the social web\footnote{which we shall define, in a highly limiting simplification, as content published on twitter.com and facebook.com} and then publishes it on their platform of choice. User $b$ then sees that published link and clicks on it, and it is this click that is captured by bit.ly. Here we are interested in the time of each click, broken down by referring domain and target URL. 
     
     \subsection{Clicks}
     
