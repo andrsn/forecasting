@@ -1,6 +1,13 @@
 \documentclass{article}
 
-\title{Modelling Attention}
+% packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% custom commands
+\newcommand{\vnorm}[1]{\left|\left|#1\right|\right|}
+
+\title{How many clicks left?  Forecasting loss of attention in web-links}
 
 \author{Sean Anderson, Tom Stafford and Mike Dewar}
 
@@ -18,7 +25,7 @@
     
     While these studies are certainly starting to lead to a deeper understanding of human behaviour when faced with adverts, they generally don't aim to learn more general browsing behaviours. Our focus in this paper is to model attention, and to learn something universal about this slice of human behaviour.
     
-    Our approach is highly data driven: using clicks captured by the link shortening service bit.ly from across the social web we have created generative, dynamic models that are able to track the click rate on individual links. While these models are useful for prediction, we show in this paper that they are also a `way in' to some fundamental aspects of human behaviour on the internet. 
+    Our approach is highly data driven: using clicks captured by the link shortening service bit.ly from across the social web we have created generative, dynamic models that are able to accurately predict the click rate decay for individual links. While these models are useful for prediction, we show in this paper that they can also give insight into some fundamental aspects of human behaviour on the internet. 
     
     \section{Data}
     
@@ -33,16 +40,108 @@
     where $N_{ij}$ is the total number of clicks from referrer $i$ to URL $j$. 
     
     
-    \subsection{Click Rates}
+\subsection{Click Rates}
     
-    \section{Modelling}
+    (Comment: This should lead to the definition of click rate $y(t)$, to link up with the next section).
     
-    \subsection{Time Series Modelling}
+\section{Time Series Modelling}
     
-    \subsection{Model Predicted Output}
+\subsection{Model representation and parameter estimation}
+    
+
+We use a sum-of-exponentials model to describe the decay in web-link click rate,
+\begin{equation} \label{eqn:exp}
+y(t) = \sum_{j=1}^{n} c_j e^{\lambda_j t} ,
+\end{equation}
+where $y(t) \in \mathbb{R}$ is the web-link click rate at time $t$, $c_j \in \mathbb{R}$ are initial conditions of the exponential components and $\lambda_j \in \mathbb{R}$ are the poles of the linear dynamic system that the model represents; $\tau_j = -\lambda_j^{-1}$ are the time-constants associated with each exponential term. 
+
+
+A separable least-squares or variable projection (VP) algorithm can be applied to the problem of estimating the exponential model parameters in eqn (\ref{eqn:exp}).  The key feature of the approach is that the unknown parameters separate into linear and nonlinear sets, $\boldsymbol{\theta}_l$ and $\boldsymbol{\theta}_n$ respectively, where
+\begin{gather}
+\boldsymbol{\theta}_l = \bigl( c_1, \ldots, c_n \bigr)^{T}  , \\
+\boldsymbol{\theta}_n = \bigl( \lambda_1, \ldots, \lambda_n \bigr)^{T} .
+\end{gather}
+The exponential model defined in eqn (\ref{eqn:exp}) can be expressed for $N$ observations as 
+\begin{equation}
+\mathbf{y} = \Phi \left( \boldsymbol{\theta}_n \right) \boldsymbol{\theta}_l + \boldsymbol{\epsilon}
+\end{equation}
+where $\mathbf{y} = \bigl( y(0), y(T), \ldots, y(NT) \bigr)^{T} $ is the vector of observations, the  vector of residual modelling errors is $\boldsymbol{\epsilon} = \bigl( \epsilon(0), \epsilon(T), \ldots, \epsilon(NT) \bigr)^{T}$, and the regression matrix is defined as
+\begin{equation}
+\Phi \left( \boldsymbol{\theta}_n \right) = \left[ \begin{array}{ccc}
+1 & \ldots & 1 \\
+e^{\lambda_1T} & \ldots & e^{\lambda_nT} \\  
+\vdots & & \vdots \\
+ e^{\lambda_1 NT} & \ldots & e^{\lambda_n NT}
+\end{array} \right] .
+\end{equation}
+Parameters are estimated by minimisation of the cost function
+\begin{equation} \label{eqn:cost1}
+J\left(\boldsymbol{\theta}_n ,\boldsymbol{\theta}_l  \right) =  \frac{1}{2} \bigl|\bigl| \mathbf{y} - \Phi \left( \boldsymbol{\theta}_n \right) \boldsymbol{\theta}_l \bigr|\bigr| _{2}^{2} ,
+\end{equation}
+where $\vnorm{.}_2$ denotes the  $l_2$ vector norm.
+The linear parameters  $\boldsymbol{\theta}_l$ can be expressed in terms of the nonlinear parameters $\boldsymbol{\theta}_n$ by the least squares solution
+\begin{equation} \label{eqn:theta_l}
+\boldsymbol{\theta}_l = \Phi \left( \boldsymbol{\theta}_n \right) ^{\dagger} \mathbf{y}
+\end{equation}
+where $\dagger$ denotes the pseudo-inverse.  Substituting eqn (\ref{eqn:theta_l}) into eqn (\ref{eqn:cost1}) leads to the expression of the minimisation problem in terms of the nonlinear parameters only,
+\begin{equation} \label{eqn:cost2}
+\min_{\boldsymbol{\theta}_n} \frac{1}{2} \vnorm { \left( I_n - \Phi \left( \boldsymbol{\theta}_n \right) \Phi \left( \boldsymbol{\theta}_n \right) ^{\dagger} \right)  \mathbf{y}  } _{2}^{2} ,
+\end{equation}
+where $I_n$ is the identity matrix of dimension $n$.  The matrix $I_n - \Phi \left( \boldsymbol{\theta}_n \right) \Phi \left( \boldsymbol{\theta}_n \right) ^{\dagger} $ is the projector on the orthogonal complement of the column space of $\Phi \left( \boldsymbol{\theta}_n \right)$, from which the algorithm name, VP, is derived.  
+
+The VP algorithm has a number of advantages in comparison to the full nonlinear optimisation problem:  it converges in fewer iterations, has improved numerical conditioning and requires initialisation of fewer parameters.  In addition, Golub and Pereyra demonstrated that the stationary points of the full and reduced optimisation problems are equivalent, ensuring that the solutions of the original problem are not altered by using the VP algorithm.  In principle the VP approach benefits any nonlinear optimisation method used to solve the minimisation problem -  in this investigation we use a quasi-Newton method.
+
+\subsection{Forecasting with uncertainty}
+    
+For online signal processing applications the continuous-time dynamic model in eqn (\ref{eqn:exp}) can be converted to a more convenient discrete-time representation: We first transform the poles of the model in eqn (\ref{eqn:exp}) to discrete-time for a given sample-time $T$, using the relationship $p=e^{\lambda T}$ (assuming a zero-order hold), which leads to the expression for the denominator of an equivalent discrete-time transfer function,
+\begin{equation} \label{eqn:diff_pole}
+A(z) = \prod_{j=1}^{n} \left(z - p_{j} \right) ,
+\end{equation}  
+where $z$ is the Z-transform operator.  Expanding eqn (\ref{eqn:diff_pole}) and taking the inverse Z-tranform leads to the difference eqn,
+\begin{equation} \label{eqn:diff}
+y(k) = \sum_{j=1}^{n} -a_j y(k-j) ,
+\end{equation}  
+where the notation has been simplified so that $y(k)=y(kT)$.
+    
+The difference model described in eqn (\ref{eqn:diff}) can be used directly for online prediction after initialisation of the first $n$ samples, but it is convenient to transform the model to state-space for handling uncertainty, where the state-space model is
+\begin{gather}
+\mathbf{x}(k+1) = F \mathbf{x}(k) + G w(k) \\
+y(k) = H \mathbf{x}(k)+ \boldsymbol{v}(k)
+\end{gather} 
+$\mathbf{x}  \in \mathbb{R}^{n}$ is the state vector at sample time $k$, the noise signals  $w(k) \thicksim \mathcal{N}(0,\sigma_w^{2})$ and $\boldsymbol{v}(k) \thicksim \mathcal{N}(0,\sigma_v^{2})$ are assumed to be independent zero mean Gaussian white noise signals, the state-space matrices are
+ \begin{gather}    
+F= \left[ \begin{array}{ccc}
+0 & I \\
+\multicolumn{2}{c}{-\mathbf{a}}  
+\end{array} \right] , \\
+G = \left[ \begin{array}{cccc}
+0 & \ldots & 0 & 1	
+\end{array} \right]^{T} , \\
+H = \left[ \begin{array}{cccc}
+0 & \ldots & 0 & 1	
+\end{array} \right] , 
+\end{gather}
+and $\mathbf{a} = (a_n,a_{n-1},\ldots, a_1)$ is the row vector composed of difference model coefficients defined in eqn (\ref{eqn:diff}).
+
+The model can be used to forecast the mean, $\hat{y}$, and variance, $\sigma_y$ of the click rate using
+\begin{gather}
+\hat{y}(k+1) = C A \hat{x}(k) ,  \\
+\sigma_y(k+1) = C  P(k+1) C^{T} + R  ,  \\
+P(k+1) = A P(k) A^{T}+ G Q G^{T} , 
+\end{gather}
+where  $\hat{x}(0)$ is initialised as the first $n$ observed click-rate samples,
+\begin{equation}
+\hat{x}(0) = \bigl(y(1), \ldots, y(n) \bigr)^{T} .
+\end{equation}
     
     \section{Results}
     
+    
+    
     \subsection{Time Constants}
     
+    
+    
 \end{document}
+
+
