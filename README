@@ -1,5 +1,5 @@
-This is the readme file for my forecasting code, which identifies and simulates an auto-regressive model.  
+This is the readme file for code that models click rate decay using a sum of exponentials model  
 
-The simulation includes uncertainty bounds.
+
 
 
